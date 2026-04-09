@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GPA + CGPA Calculator</title>
+
+<style>
+:root{--bg:#0f1724;--accent:#7c3aed;--muted:#cbd5e1}
+
+body{
+  font-family:Arial;
+  background:#071833;
+  color:var(--muted);
+  display:flex;
+  justify-content:center;
+  padding:20px
+}
+
+.wrap{
+  width:100%;
+  max-width:950px;
+  background:#0b1220;
+  padding:20px;
+  border-radius:12px
+}
+
+h1{color:white}
+
+table{
+  width:100%;
+  margin-top:10px;
+  border-collapse:collapse
+}
+
+th,td{
+  padding:10px;
+  text-align:left
+}
+
+th{color:white}
+
+select{
+  width:100%;
+  padding:6px;
+  border-radius:6px;
+  background:#111;
+  color:white;
+  border:none
+}
+
+input{
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  background:#1e293b;
+  color:#ffffff;
+  border:1px solid #7c3aed;
+  font-size:14px;
+}
+
+input::placeholder{
+  color:#cbd5e1;
+}
+
+label{
+  color:#e2e8f0;
+  display:block;
+  margin-top:10px;
+  margin-bottom:5px;
+}
+
+button{
+  margin-top:10px;
+  padding:10px;
+  background:var(--accent);
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer
+}
+
+.big{
+  font-size:1.5rem;
+  color:white
+}
+
+.section{
+  margin-top:20px;
+  padding:15px;
+  background:#111;
+  border-radius:10px;
+  display:none;
+  opacity:0;
+  transition:0.4s;
+}
+
+/* 🔥 FOOTER STYLE */
+.footer{
+  margin-top:25px;
+  text-align:center;
+  color:#7c3aed;
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:1px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+<h1>GPA + CGPA Calculator</h1>
+
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Subject</th>
+<th>Credits</th>
+<th>Grade</th>
+</tr>
+</thead>
+
+<tbody id="tbody"></tbody>
+</table>
+
+<button onclick="calculateGPA()">Calculate GPA</button>
+
+<h2>Total Credits: <span id="credits" class="big">0</span></h2>
+<h2>GPA: <span id="gpa" class="big">0.00</span></h2>
+
+<!-- CGPA SECTION -->
+<div id="cgpaSection" class="section">
+  <h2>Enter Previous Details</h2>
+
+  <label>Previous CGPA:</label>
+  <input type="number" id="prevCgpa" placeholder="Enter previous CGPA">
+
+  <label>Previous Total Credits:</label>
+  <input type="number" id="prevCredits" placeholder="Enter total credits">
+
+  <button onclick="calculateCGPA()">Calculate CGPA</button>
+
+  <h2>New CGPA: <span id="cgpa" class="big">0.00</span></h2>
+</div>
+
+<!-- 🔥 FOOTER -->
+<div class="footer">
+  Created by MI ❤
+</div>
+
+</div>
+
+<script>
+const gradePoints = {H:10,S:9,A:8,B:7,C:6};
+
+const subjects = [
+  {code:'EBCS22006', name:'COA', credit:4},
+  {code:'EBCS22007', name:'Computer Networks', credit:3},
+  {code:'EBCS22008', name:'Compiler Design', credit:3},
+  {code:'EBCS22E06', name:'Program Elective', credit:3},
+  {code:'EBXX22OEX', name:'Open Elective', credit:3},
+  {code:'EBOL22I01', name:'NPTEL', credit:1},
+  {code:'EBCS22L05', name:'Network Lab', credit:1},
+  {code:'EBCS22L06', name:'Compiler Lab', credit:1},
+  {code:'EBCS22ET5', name:'UI/UX', credit:3},
+  {code:'EBCS22I02', name:'Technical Skill II', credit:1},
+  {code:'EBFL22IXX', name:'Foreign Language', credit:1}
+];
+
+const tbody = document.getElementById('tbody');
+
+function load(){
+  subjects.forEach((sub,i)=>{
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${sub.code}</td>
+      <td>${sub.name}</td>
+      <td>${sub.credit}</td>
+      <td>
+        <select id="g${i}">
+          <option value="H">H</option>
+          <option value="S">S</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+let currentGPA = 0;
+let currentCredits = 0;
+
+function calculateGPA(){
+  let totalCredits = 0;
+  let totalPoints = 0;
+
+  subjects.forEach((sub,i)=>{
+    const grade = document.getElementById(`g${i}`).value;
+    totalCredits += sub.credit;
+    totalPoints += sub.credit * gradePoints[grade];
+  });
+
+  currentGPA = totalPoints / totalCredits;
+  currentCredits = totalCredits;
+
+  document.getElementById('credits').innerText = totalCredits;
+  document.getElementById('gpa').innerText = currentGPA.toFixed(2);
+
+  const cgpaBox = document.getElementById('cgpaSection');
+  cgpaBox.style.display = 'block';
+  setTimeout(()=>{ cgpaBox.style.opacity = '1'; },100);
+}
+
+function calculateCGPA(){
+  const prevCgpa = parseFloat(document.getElementById('prevCgpa').value);
+  const prevCredits = parseFloat(document.getElementById('prevCredits').value);
+
+  const totalPoints = (prevCgpa * prevCredits) + (currentGPA * currentCredits);
+  const totalCredits = prevCredits + currentCredits;
+
+  const newCgpa = totalPoints / totalCredits;
+
+  document.getElementById('cgpa').innerText = newCgpa.toFixed(2);
+}
+
+load();
+</script>
+
+</body>
+</html>
